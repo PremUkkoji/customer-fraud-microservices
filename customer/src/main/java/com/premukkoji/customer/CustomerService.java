@@ -1,5 +1,7 @@
 package com.premukkoji.customer;
 
+import com.premukkoji.clients.fraud.FraudCheckResponse;
+import com.premukkoji.clients.fraud.FraudClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -8,10 +10,14 @@ public class CustomerService {
 
     private CustomerRepository customerRepository;
     private RestTemplate restTemplate;
+    private FraudClient fraudClient;
 
-    public CustomerService(CustomerRepository customerRepository, RestTemplate restTemplate){
+    public CustomerService(CustomerRepository customerRepository,
+                           RestTemplate restTemplate,
+                           FraudClient fraudClient){
         this.customerRepository = customerRepository;
         this.restTemplate = restTemplate;
+        this.fraudClient = fraudClient;
     }
 
     public void registerCustomer(CustomerRegistrationRequest request){
@@ -23,9 +29,7 @@ public class CustomerService {
 
         this.customerRepository.saveAndFlush(customer);
 
-        FraudCheckResponse fraudCheckResponse = restTemplate.getForObject(
-                "http://FRAUD/api/v1/fraud-check/{customerId}",
-                FraudCheckResponse.class, customer.getId());
+        FraudCheckResponse fraudCheckResponse = fraudClient.isFraudster(customer.getId());
 
         if(fraudCheckResponse.isFraudster()){
             throw new IllegalStateException("Fraudster");

@@ -10,7 +10,8 @@
 		<module>customer</module>
 		<module>fraud</module>
 		<module>eureka-server</module>
-	</modules>
+        <module>clients</module>
+    </modules>
 	<name>custfraudservices</name>
 	<url>http://www.premukkoji.com</url>
 
@@ -51,7 +52,11 @@
 		<dependency>				
 			<groupId>org.springframework.boot</groupId>				
 			<artifactId>spring-boot-starter-test</artifactId>				
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>		
