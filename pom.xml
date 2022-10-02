@@ -11,6 +11,7 @@
 		<module>fraud</module>
 		<module>eureka-server</module>
         <module>clients</module>
+        <module>notification</module>
     </modules>
 	<name>custfraudservices</name>
 	<url>http://www.premukkoji.com</url>
