@@ -9,6 +9,7 @@
 	<modules>
 		<module>customer</module>
 		<module>fraud</module>
+		<module>eureka-server</module>
 	</modules>
 	<name>custfraudservices</name>
 	<url>http://www.premukkoji.com</url>
