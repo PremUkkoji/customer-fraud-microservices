@@ -1,8 +1,8 @@
 package com.premukkoji.customer;
 
+import com.premukkoji.amqp.RabbitMQMessageProducer;
 import com.premukkoji.clients.fraud.FraudCheckResponse;
 import com.premukkoji.clients.fraud.FraudClient;
-import com.premukkoji.clients.notification.NotificationClient;
 import com.premukkoji.clients.notification.NotificationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -13,16 +13,16 @@ public class CustomerService {
     private CustomerRepository customerRepository;
     private RestTemplate restTemplate;
     private FraudClient fraudClient;
-    private NotificationClient notificationClient;
+    private RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public CustomerService(CustomerRepository customerRepository,
                            RestTemplate restTemplate,
                            FraudClient fraudClient,
-                           NotificationClient notificationClient){
+                           RabbitMQMessageProducer rabbitMQMessageProducer){
         this.customerRepository = customerRepository;
         this.restTemplate = restTemplate;
         this.fraudClient = fraudClient;
-        this.notificationClient = notificationClient;
+        this.rabbitMQMessageProducer = rabbitMQMessageProducer;
     }
 
     public void registerCustomer(CustomerRegistrationRequest request){
@@ -40,14 +40,17 @@ public class CustomerService {
             throw new IllegalStateException("Fraudster");
         }
 
-        notificationClient.sendNotification(
-                new NotificationRequest(
-                        customer.getId(),
-                        customer.getEmail(),
-                        String.format("Hi %s, welcome to premukkoji microservices...",
-                                customer.getFirstName() + " " + customer.getLastName())
-                )
+        NotificationRequest notificationRequest = new NotificationRequest(
+                customer.getId(),
+                customer.getEmail(),
+                String.format("Hi %s, welcome to premukkoji microservices...",
+                        customer.getFirstName() + " " + customer.getLastName())
         );
+
+        rabbitMQMessageProducer.publish(
+                notificationRequest,
+                "internal.exchange",
+                "internal.notification.routing-key");
     }
 
 }
