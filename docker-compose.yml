@@ -1,7 +1,7 @@
 services:
     postgres:
         container_name: postgres
-        image: postgres
+        image: postgres:14.5-alpine
         environment:
             POSTGRES_USER: premukkoji
             POSTGRES_PASSWORD: password
@@ -34,6 +34,8 @@ services:
         image: openzipkin/zipkin
         ports:
             - "9411:9411"
+        networks:
+            - spring
 
     rabbitmq:
         container_name: rabbitmq
@@ -41,9 +43,86 @@ services:
         ports:
             - "5672:5672"
             - "15672:15672"
+        networks:
+            - spring
+
+    eureka-server:
+        container_name: eureka-server
+        image: premukkoji/eureka-server:latest
+        ports:
+            - "8761:8761"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+        networks:
+            - spring
+        depends_on:
+            - zipkin
+
+    apigw:
+        container_name: apigw
+        image: premukkoji/apigw:latest
+        ports:
+            - "8083:8083"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+        networks:
+            - spring
+        depends_on:
+            - zipkin
+            - eureka-server
+
+    customer:
+        container_name: customer
+        image: premukkoji/customer:latest
+        ports:
+            - "8000:8000"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+        networks:
+            - spring
+            - postgres
+        depends_on:
+            - zipkin
+            - eureka-server
+            - postgres
+            - rabbitmq
+
+    fraud:
+        container_name: fraud
+        image: premukkoji/fraud:latest
+        ports:
+            - "8001:8001"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+        networks:
+            - spring
+            - postgres
+        depends_on:
+            - zipkin
+            - eureka-server
+            - postgres
+            - rabbitmq
+
+    notification:
+        container_name: notification
+        image: premukkoji/notification:latest
+        ports:
+            - "8002:8002"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+        networks:
+            - spring
+            - postgres
+        depends_on:
+            - zipkin
+            - eureka-server
+            - postgres
+            - rabbitmq
 
 networks:
     postgres:
+        driver: bridge
+    spring:
         driver: bridge
 
 volumes:
